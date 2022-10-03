@@ -228,7 +228,7 @@ def profile(user_id):
    
     if form.validate_on_submit():
         if user.password != form.password.data:
-            flash('Incorrect password')
+            flash('Incorrect password', 'danger')
             return redirect('/')
         user.username = form.username.data
         user.email = form.email.data
