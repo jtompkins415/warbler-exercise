@@ -217,7 +217,11 @@ def profile():
     """Update profile for current user."""
 
     # IMPLEMENT THIS
-
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+    
+    
 
 @app.route('/users/delete', methods=["POST"])
 def delete_user():
