@@ -5,7 +5,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
 from forms import UserAddForm, LoginForm, MessageForm, UserEditForm
-from models import db, connect_db, User, Message
+from models import db, connect_db, User, Message, bcrypt
 
 CURR_USER_KEY = "curr_user"
 
@@ -227,19 +227,20 @@ def profile(user_id):
     
    
     if form.validate_on_submit():
-        if user.password != form.password.data:
-            flash('Incorrect password', 'danger')
-            return redirect('/')
-        user.username = form.username.data
-        user.email = form.email.data
-        user.image_url = form.image_url.data
-        user.header_image_url = form.header_image_url.data
-        user.bio = form.bio.data
+        if bcrypt.check_password_hash(user.password, form.password.data): 
+         user.username = form.username.data
+         user.email = form.email.data
+         user.image_url = form.image_url.data
+         user.header_image_url = form.header_image_url.data
+         user.bio = form.bio.data
         
-        db.session.add(user)
-        db.session.commit()
+         db.session.add(user)
+         db.session.commit()
 
-        return redirect(f'/users/{user.id}')
+         return redirect(f'/users/{user.id}')
+        else:
+            flash('Invalid Password!', 'danger')
+            return redirect('/')
         
     return render_template('/users/edit.html', form=form, user=user)       
 
