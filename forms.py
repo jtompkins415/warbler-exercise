@@ -29,7 +29,7 @@ class UserEditForm(FlaskForm):
 
     username = StringField('Edit Username')
     email = StringField('Edit Email')
-    image_url = StringField('Change Profile Image')
-    header_image_url = StringField('Change Header Image')
+    image_url = StringField('Change Profile Image', default='/static/images/default-pic.png')
+    header_image_url = StringField('Change Header Image', default='/static/images/warbler-hero.jpg')
     bio = StringField('Edit Bio')
     password = PasswordField('Enter Password to Confirm', validators=[Length(min=6)])
