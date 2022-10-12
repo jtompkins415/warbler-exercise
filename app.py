@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, render_template, request, flash, redirect, session, g
+from flask import Flask, render_template, request, flash, redirect, session, g, abort
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
@@ -242,7 +242,43 @@ def profile(user_id):
             flash('Invalid Password!', 'danger')
             return redirect('/')
         
-    return render_template('/users/edit.html', form=form, user=user)       
+    return render_template('/users/edit.html', form=form, user=user)   
+
+
+@app.route('/users/<int:user_id>/likes', methods=['GET'])
+def show_likes(user_id):    
+    '''Show all liked messages from a user'''
+
+    if not g.user:
+        flash('Access unauthorzed', "danger")
+        return redirect('/')
+    
+    user = User.query.get_or_404(user_id)
+    return render_template('/users/likes.html', user=user, likes=user.likes)
+
+@app.route('/users/add_like/<int:msg_id>', methods=['POST'])
+def add_like(msg_id):
+    '''Toggle user likes on a comment'''
+
+    if not g.user:
+        flash("Access unauthorized", "danger")
+        return redirect('/')
+    
+    liked_msg = Message.query.get_or_404(msg_id)
+    if liked_msg.user_id == g.user.id:
+        return abort(403)
+
+    user_likes = g.user.likes
+
+    if liked_msg in user_likes:
+        g.user.likes = [like for like in user_likes if like != liked_msg]
+    else:
+        g.user.likes.append(liked_msg)
+
+    db.session.commit()
+
+    return redirect('/') 
+
 
 @app.route('/users/delete', methods=["POST"])
 def delete_user():
