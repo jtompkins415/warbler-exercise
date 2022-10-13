@@ -56,3 +56,24 @@ class UserModelTestCase(TestCase):
         # User should have no messages & no followers
         self.assertEqual(len(u.messages), 0)
         self.assertEqual(len(u.followers), 0)
+
+    def test_is_following(self):
+        '''Does is_following successfully detect when user1 is not following user2'''
+
+        user1= User(
+            email="test@test.com",
+            username="testuser",
+            password="HASHED_PASSWORD"
+        )
+
+        user2= User (
+            email="test2@test.com",
+            username='testuser2',
+            password="HASHED_PASSWORD"
+        )
+
+        db.session.add_all([user1, user2])
+        db.session.commit()
+
+        self.assertFalse(user1.is_following(user2))
+
