@@ -34,12 +34,33 @@ class UserModelTestCase(TestCase):
 
     def setUp(self):
         """Create test client, add sample data."""
+        db.drop_all()
+        db.create_all()
 
-        User.query.delete()
-        Message.query.delete()
-        Follows.query.delete()
+        user1 = User.signup("testUser1", "testEmail@test.com", "HASHED_PASSWORD", None)
+        uid1 = 1
+        user1.id = uid1
+        
+        user2 = User.signup("testUser2", "testEmail2@test.com", "HASHED_PASSWORD", None)
+        uid2 = 2
+        user2.id = uid2
+
+        db.session.commit()
+
+        user1 = User.query.get(uid1)
+        user2 = User.query.get(uid2)
+
+        self.user1 = user1
+        self.uid1 = uid1
+        self.user2 = user2
+        self.uid2 = uid2
 
         self.client = app.test_client()
+
+    def tearDown(self):
+        res = super().tearDown()
+        db.session.rollback()
+        return res
 
     def test_user_model(self):
         """Does basic model work?"""
@@ -57,23 +78,27 @@ class UserModelTestCase(TestCase):
         self.assertEqual(len(u.messages), 0)
         self.assertEqual(len(u.followers), 0)
 
-    def test_is_following(self):
-        '''Does is_following successfully detect when user1 is not following user2'''
+    def test_follows(self):
+        '''Detect user1 follows vs user2 follows'''
 
-        user1= User(
-            email="test@test.com",
-            username="testuser",
-            password="HASHED_PASSWORD"
-        )
-
-        user2= User (
-            email="test2@test.com",
-            username='testuser2',
-            password="HASHED_PASSWORD"
-        )
-
-        db.session.add_all([user1, user2])
+        self.user1.following.append(self.user2)
         db.session.commit()
 
-        self.assertFalse(user1.is_following(user2))
+        self.assertEqual(len(self.user2.following), 0)
+        self.assertEqual(len(self.user2.followers), 1)
+        self.assertEqual(len(self.user1.followers), 0)
+        self.assertEqual(len(self.user1.following), 1)
 
+        self.assertEqual(self.user2.followers[0].id, self.user1.id)
+        self.assertEqual(self.user1.following[0].id, self.user2.id)
+
+    def test_is_following(self):
+        '''Detect if user.is_following works'''
+
+        self.user1.following.append(self.user2)
+        db.session.commit()
+
+        self.assertTrue(self.user1.is_following(self.user2))
+        self.assertFalse(self.user2.is_following(self.user1))
+
+    
