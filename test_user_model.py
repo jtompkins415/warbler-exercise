@@ -101,4 +101,20 @@ class UserModelTestCase(TestCase):
         self.assertTrue(self.user1.is_following(self.user2))
         self.assertFalse(self.user2.is_following(self.user1))
 
-    
+    def test_user_create(self):
+        '''Detect valud user creation'''
+
+        u = User.signup('testuser1', 'testuser@test.com', 'HASHED_PW', None)
+        uid = 9999
+        u.id = uid
+        db.session.commit()
+
+        u_test = User.query.get(uid)
+        self.assertIsNotNone(u_test)
+        self.assertEqual(u.username, "testuser1")
+        self.assertEqual(u.email, "testuser@test.com")
+        self.assertEqual(u.password, 'HASHED_PW')
+        self.assertTrue(u.password.startswith("$2b$"))
+
+
+
