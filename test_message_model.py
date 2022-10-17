@@ -1,6 +1,6 @@
 import os
 from unittest import TestCase
-from models import db, Message, User
+from models import db, Message, User, Likes
 from app import app
 
 os.environ['DATABASE_URL'] = "postgresql:///warbler-test"
@@ -47,4 +47,22 @@ class MessageModelTestCase(TestCase):
         self.assertEqual(mess.text, 'test message')
         self.assertEqual(mess.user_id, 1)
 
-    
+    def test_likes(self):
+        m1 = Message(text= 'test message 1', user_id=self.uid1)
+
+        m2 = Message(text='test message2', user_id=self.uid1)
+
+        u = User.signup('testuser2', 'test2@gmail.com', 'HASHED_PW', None)
+        uid=342
+        u.id= uid
+        db.session.add_all([m1, m2, u])
+        db.session.commit()
+
+        u.likes.append(m1)
+
+        db.session.commit()
+
+        l = Likes.query.filter(Likes.user_id == uid).all()
+
+        self.assertEqual(len(l), 1)
+        self.assertEqual(l[0].message_id, m1.id)
